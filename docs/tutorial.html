@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CFO Tutorial — ForecastAI</title>
+  <meta name="description" content="A complete CFO guide to using ForecastAI with Claude Desktop for Excel financial models."/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-900: #1e3a8a;
+      --blue-700: #1d4ed8;
+      --blue-500: #3b82f6;
+      --blue-100: #dbeafe;
+      --blue-50:  #eff6ff;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-500: #64748b;
+      --slate-300: #cbd5e1;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --slate-50:  #f8fafc;
+      --green-600: #16a34a;
+      --green-50:  #f0fdf4;
+      --amber-600: #d97706;
+      --amber-50:  #fffbeb;
+      --red-600:   #dc2626;
+      --white: #ffffff;
+      --radius: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--slate-700);
+      background: var(--white);
+    }
+
+    a { color: var(--blue-700); }
+    a:hover { text-decoration: underline; }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--slate-200);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 52px; gap: 1rem;
+    }
+    .nav-brand {
+      font-weight: 700; font-size: 0.95rem; color: var(--slate-900);
+      white-space: nowrap;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .nav-brand span { color: var(--blue-700); }
+    .nav-links { display: flex; gap: 1.25rem; font-size: 0.82rem; }
+    .nav-links a { color: var(--slate-500); font-weight: 500; white-space: nowrap; }
+    .nav-links a:hover { color: var(--slate-900); text-decoration: none; }
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-size: 0.82rem; font-weight: 600;
+      color: var(--slate-500); white-space: nowrap;
+    }
+    .btn-back:hover { color: var(--blue-700); text-decoration: none; }
+
+    /* ── Layout ── */
+    .page-wrap {
+      display: flex;
+      max-width: 1280px; margin: 0 auto;
+      padding: 2.5rem 2rem;
+      gap: 3rem;
+    }
+
+    /* ── Sidebar TOC ── */
+    .sidebar {
+      width: 240px; flex-shrink: 0;
+      position: sticky; top: 70px;
+      align-self: flex-start;
+      max-height: calc(100vh - 90px);
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--slate-500);
+      margin-bottom: 0.75rem;
+    }
+    .toc-list { list-style: none; }
+    .toc-list li { margin-bottom: 0.1rem; }
+    .toc-list a {
+      display: block; font-size: 0.8rem; color: var(--slate-500);
+      padding: 0.25rem 0.6rem; border-radius: 4px; border-left: 2px solid transparent;
+      text-decoration: none; transition: all 0.1s;
+    }
+    .toc-list a:hover {
+      background: var(--blue-50); color: var(--blue-700);
+      border-left-color: var(--blue-700);
+    }
+    .toc-list .toc-h3 { padding-left: 1.25rem; }
+
+    /* ── Main content ── */
+    .content { flex: 1; min-width: 0; max-width: 820px; }
+
+    /* ── Hero banner ── */
+    .doc-hero {
+      background: linear-gradient(135deg, var(--slate-900), var(--blue-900));
+      color: var(--white); border-radius: 12px;
+      padding: 2.5rem 2.5rem 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .doc-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #93c5fd; margin-bottom: 0.5rem;
+    }
+    .doc-hero h1 { font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .doc-hero p  { font-size: 0.95rem; color: #cbd5e1; max-width: 540px; }
+    .doc-meta {
+      margin-top: 1.25rem; padding-top: 1.25rem;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      font-size: 0.8rem; color: #94a3b8;
+      display: flex; gap: 2rem; flex-wrap: wrap;
+    }
+
+    /* ── Typography ── */
+    .content h2 {
+      font-size: 1.5rem; font-weight: 800; color: var(--slate-900);
+      margin: 2.5rem 0 0.75rem;
+      padding-top: 0.5rem;
+      border-bottom: 2px solid var(--blue-100);
+      padding-bottom: 0.5rem;
+    }
+    .content h2:first-of-type { margin-top: 0; }
+    .content h3 {
+      font-size: 1.1rem; font-weight: 700; color: var(--slate-900);
+      margin: 1.75rem 0 0.5rem;
+    }
+    .content h4 {
+      font-size: 0.95rem; font-weight: 700; color: var(--slate-700);
+      margin: 1.25rem 0 0.4rem;
+    }
+    .content p  { margin-bottom: 0.9rem; }
+    .content ul, .content ol {
+      margin: 0.5rem 0 1rem 1.5rem;
+    }
+    .content li { margin-bottom: 0.3rem; }
+    .content strong { color: var(--slate-900); }
+    code {
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: 0.85em;
+      background: var(--slate-100); color: var(--slate-800);
+      padding: 0.1em 0.4em; border-radius: 4px;
+    }
+    .content hr {
+      border: none; border-top: 1px solid var(--slate-200);
+      margin: 2rem 0;
+    }
+
+    /* ── Callout box ── */
+    .callout {
+      border-left: 4px solid var(--blue-500);
+      background: var(--blue-50);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 0.9rem 1.25rem;
+      margin: 1rem 0 1.25rem;
+      font-size: 0.9rem;
+    }
+    .callout strong { color: var(--blue-700); }
+    .callout-warn {
+      border-left-color: var(--amber-600);
+      background: var(--amber-50);
+    }
+    .callout-warn strong { color: var(--amber-600); }
+
+    /* ── Tables ── */
+    .content table {
+      width: 100%; border-collapse: collapse;
+      margin: 1rem 0 1.25rem;
+      font-size: 0.875rem;
+    }
+    .content th {
+      background: var(--slate-900); color: var(--white);
+      text-align: left; padding: 0.55rem 0.85rem;
+      font-weight: 600; font-size: 0.8rem;
+    }
+    .content td {
+      padding: 0.5rem 0.85rem;
+      border-bottom: 1px solid var(--slate-200);
+      vertical-align: top;
+    }
+    .content tr:hover td { background: var(--slate-50); }
+    .content th:first-child { border-radius: 4px 0 0 0; }
+    .content th:last-child  { border-radius: 0 4px 0 0; }
+
+    /* ── Chat bubbles ── */
+    .chat-block { margin: 1rem 0 1.25rem; }
+    .chat-turn {
+      display: flex; gap: 0.65rem; margin-bottom: 0.85rem;
+      align-items: flex-start;
+    }
+    .chat-av {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 800; flex-shrink: 0; margin-top: 1px;
+    }
+    .av-you    { background: var(--blue-700); color: var(--white); }
+    .av-claude { background: #d946ef; color: var(--white); }
+    .chat-body { flex: 1; font-size: 0.9rem; line-height: 1.6; }
+    .chat-who {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; margin-bottom: 0.2rem;
+    }
+    .chat-who-you    { color: var(--blue-700); }
+    .chat-who-claude { color: #9333ea; }
+    .chat-text {
+      background: var(--slate-50); border: 1px solid var(--slate-200);
+      border-radius: 0 8px 8px 8px; padding: 0.7rem 1rem;
+    }
+    .chat-text p { margin-bottom: 0.4rem; }
+    .chat-text p:last-child { margin-bottom: 0; }
+    .chat-text table { margin: 0.5rem 0; }
+    .tool-call {
+      display: inline-block; font-size: 0.72rem;
+      background: var(--blue-50); color: var(--blue-700);
+      border: 1px solid var(--blue-100); border-radius: 4px;
+      padding: 0.1rem 0.4rem; font-family: monospace;
+      margin: 0.1rem 0.1rem;
+    }
+    .result-ok   { color: var(--green-600); }
+    .result-warn { color: var(--amber-600); }
+    .result-err  { color: var(--red-600); }
+
+    /* ── Code blocks ── */
+    pre {
+      background: var(--slate-900); color: #e2e8f0;
+      border-radius: var(--radius); padding: 1rem 1.25rem;
+      overflow-x: auto; margin: 0.75rem 0 1rem;
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: 0.82rem; line-height: 1.65;
+    }
+    pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+    .pre-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--slate-500);
+      margin-bottom: 0.25rem; margin-top: 0.5rem;
+    }
+
+    /* ── Scenario badge ── */
+    .scenario-header {
+      background: linear-gradient(135deg, var(--slate-900), #1e3a8a);
+      color: var(--white); border-radius: var(--radius);
+      padding: 1.1rem 1.4rem; margin: 2rem 0 1.25rem;
+      display: flex; gap: 1rem; align-items: center;
+    }
+    .scenario-badge {
+      background: rgba(59,130,246,0.3); color: #93c5fd;
+      border: 1px solid rgba(59,130,246,0.4);
+      border-radius: 99px; padding: 0.2rem 0.7rem;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;
+      text-transform: uppercase; flex-shrink: 0;
+    }
+    .scenario-header h2 {
+      font-size: 1.1rem; font-weight: 800;
+      border: none; padding: 0; margin: 0; color: var(--white);
+    }
+    .scenario-situation {
+      font-size: 0.875rem; color: #94a3b8; margin-bottom: 1.25rem;
+      font-style: italic;
+    }
+
+    /* ── Prompt cards ── */
+    .prompt-card {
+      background: var(--slate-900); border-radius: var(--radius);
+      padding: 1rem 1.25rem; margin: 0.5rem 0 1rem;
+    }
+    .prompt-card-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: #64748b; margin-bottom: 0.5rem;
+    }
+    .prompt-card pre {
+      background: transparent; padding: 0; margin: 0; border-radius: 0;
+      font-size: 0.83rem; color: #e2e8f0;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding: 2.5rem 2rem;
+      border-top: 1px solid var(--slate-200);
+      font-size: 0.875rem; color: var(--slate-500);
+    }
+    footer a { color: var(--blue-700); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .page-wrap { padding: 1.5rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">📊 <span>Forecast</span>AI</div>
+  <div class="nav-links">
+    <a href="#how-it-works">How it works</a>
+    <a href="#tool-inventory">Tools</a>
+    <a href="#scenario-a">Scenario A</a>
+    <a href="#scenario-d">Scenarios</a>
+    <a href="#prompt-reference">Prompts</a>
+  </div>
+  <a href="index.html" class="btn-back">← Back to home</a>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- Sidebar TOC -->
+  <nav class="sidebar" aria-label="Table of contents">
+    <h2>Contents</h2>
+    <ul class="toc-list">
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#setup">Setup Checklist</a></li>
+      <li><a href="#tool-inventory">Tool Inventory</a></li>
+      <li><a href="#scenario-a">Scenario A — First Look</a></li>
+      <li><a href="#scenario-b">Scenario B — Board Pack</a></li>
+      <li><a href="#scenario-c">Scenario C — Monthly Close</a></li>
+      <li><a href="#scenario-d">Scenario D — Scenarios</a></li>
+      <li><a href="#scenario-e">Scenario E — Dependencies</a></li>
+      <li><a href="#scenario-f">Scenario F — Multi-File</a></li>
+      <li><a href="#scenario-g">Scenario G — Time Series</a></li>
+      <li><a href="#scenario-h">Scenario H — Labelling</a></li>
+      <li><a href="#scenario-i">Scenario I — Safe Edits</a></li>
+      <li><a href="#prompt-reference">Prompt Reference Card</a></li>
+      <li><a href="#tips">Tips &amp; Best Practices</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main content -->
+  <main class="content">
+
+    <!-- Hero -->
+    <div class="doc-hero">
+      <div class="doc-label">CFO Tutorial</div>
+      <h1>ForecastAI + Claude Desktop</h1>
+      <p>How to have a real financial conversation with your Excel models. No macros, no VBA, no Python — just a conversation.</p>
+      <div class="doc-meta">
+        <span>📄 9 real-world scenarios</span>
+        <span>🔧 34 MCP tools</span>
+        <span>⏱ ~30 min read</span>
+        <span>📥 <a href="CFO_TUTORIAL.pdf" style="color:#93c5fd">Download PDF</a></span>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <h2 id="how-it-works">How It Works</h2>
+
+    <pre><code>You (CFO)                Claude Desktop              ForecastAI MCP Server
+    │                          │                              │
+    │ "What's in this file?"   │                              │
+    │ ─────────────────────►   │                              │
+    │                          │  get_workbook_info_tool()    │
+    │                          │ ────────────────────────►    │
+    │                          │  {sheets, named ranges, ...} │
+    │                          │ ◄────────────────────────    │
+    │ "Here's what I found..." │                              │
+    │ ◄─────────────────────   │                              │</code></pre>
+
+    <p><strong>Key principle:</strong> Claude reads your Excel files, reasons over them, and can write changes back — but only when you explicitly ask. Every destructive operation offers a backup first.</p>
+    <p>Your Excel files live in <code>~/Documents/ForecastAI/</code> (configurable). Drop any <code>.xlsx</code> file there and it is immediately accessible.</p>
+
+    <hr/>
+
+    <!-- Setup -->
+    <h2 id="setup">Setup Checklist</h2>
+    <ul>
+      <li>Claude Desktop installed and running</li>
+      <li>ForecastAI binary downloaded from <a href="https://github.com/me883/forecastai-dist/releases/latest">the latest release</a></li>
+      <li><code>claude_desktop_config.json</code> updated with the <code>forecast-ai-excel</code> server entry</li>
+      <li>Excel files placed in <code>~/Documents/ForecastAI/</code></li>
+      <li>Claude Desktop restarted after config change</li>
+      <li>Verify: type <em>"list my Excel files"</em> in Claude — you should see your files listed</li>
+    </ul>
+
+    <div class="callout">
+      <strong>Quick config snippet</strong><br/>
+      See the <a href="index.html#install">installation guide</a> for the full <code>claude_desktop_config.json</code> snippet to add.
+    </div>
+
+    <hr/>
+
+    <!-- Tool Inventory -->
+    <h2 id="tool-inventory">The Tool Inventory</h2>
+    <table>
+      <thead><tr><th>Category</th><th>Tool</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Explore</strong></td><td><code>get_workbook_info</code></td><td>Sheet names, named ranges, file format</td></tr>
+        <tr><td><strong>Explore</strong></td><td><code>read_sheet</code></td><td>Full sheet contents with formulas</td></tr>
+        <tr><td><strong>Explore</strong></td><td><code>get_cell</code></td><td>Deep inspect one cell (formula, format, colour, comment)</td></tr>
+        <tr><td><strong>Explore</strong></td><td><code>get_formulas</code></td><td>Every formula in the workbook</td></tr>
+        <tr><td><strong>Explore</strong></td><td><code>resolve_named_range</code></td><td>Look up a named range like <code>Revenue_FY25</code></td></tr>
+        <tr><td><strong>Explore</strong></td><td><code>get_charts</code></td><td>Charts embedded in the workbook</td></tr>
+        <tr><td><strong>Audit</strong></td><td><code>run_audit</code></td><td>7-check integrity scan, health score 0–100</td></tr>
+        <tr><td><strong>Variance</strong></td><td><code>compare_workbooks</code></td><td>Cell-by-cell diff of two files</td></tr>
+        <tr><td><strong>Variance</strong></td><td><code>compare_sheets</code></td><td>Diff two sheets in the same file</td></tr>
+        <tr><td><strong>Variance</strong></td><td><code>period_over_period</code></td><td>Column-by-column comparison (Jan vs Feb)</td></tr>
+        <tr><td><strong>Scenarios</strong></td><td><code>run_scenarios</code></td><td>Bear/Base/Bull — non-destructive, in-memory</td></tr>
+        <tr><td><strong>Scenarios</strong></td><td><code>build_sensitivity_table</code></td><td>2D table: two assumptions × one output</td></tr>
+        <tr><td><strong>Time Series</strong></td><td><code>detect_time_axis</code></td><td>Find which columns are time periods</td></tr>
+        <tr><td><strong>Time Series</strong></td><td><code>analyse_timeseries</code></td><td>Growth rates, CAGR, trend, anomalies per row</td></tr>
+        <tr><td><strong>Time Series</strong></td><td><code>get_row_timeseries</code></td><td>Deep-dive into one P&amp;L line</td></tr>
+        <tr><td><strong>Dependencies</strong></td><td><code>build_dependency_graph</code></td><td>Full formula dependency map</td></tr>
+        <tr><td><strong>Dependencies</strong></td><td><code>get_cell_precedents</code></td><td>What feeds this cell?</td></tr>
+        <tr><td><strong>Dependencies</strong></td><td><code>get_cell_dependents</code></td><td>What does this cell drive?</td></tr>
+        <tr><td><strong>Dependencies</strong></td><td><code>get_impact_summary</code></td><td>How many cells would changing this affect?</td></tr>
+        <tr><td><strong>Dependencies</strong></td><td><code>get_evaluation_order</code></td><td>Topological order for recalculation</td></tr>
+        <tr><td><strong>Cross-File</strong></td><td><code>scan_external_references</code></td><td>Find and validate all <code>[OtherFile.xlsx]</code> links</td></tr>
+        <tr><td><strong>Cross-File</strong></td><td><code>build_provenance_chain</code></td><td>Recursive: "where does this number come from?"</td></tr>
+        <tr><td><strong>Labels</strong></td><td><code>set_cell_label</code></td><td>Tag a cell: name, category, note</td></tr>
+        <tr><td><strong>Labels</strong></td><td><code>get_all_labels</code> / <code>get_labels_by_category</code></td><td>Review the model map</td></tr>
+        <tr><td><strong>Labels</strong></td><td><code>get_review_progress</code></td><td>How much of the model is labelled?</td></tr>
+        <tr><td><strong>Visualise</strong></td><td><code>get_dependency_diagram</code></td><td>Mermaid diagram rendered in chat</td></tr>
+        <tr><td><strong>Visualise</strong></td><td><code>export_dependency_html</code></td><td>Interactive HTML graph, opens in browser</td></tr>
+        <tr><td><strong>Edit</strong></td><td><code>update_cells</code></td><td>Write values or formulas back to the workbook</td></tr>
+        <tr><td><strong>Edit</strong></td><td><code>add_sheet</code> / <code>delete_sheet</code></td><td>Sheet management</td></tr>
+        <tr><td><strong>Edit</strong></td><td><code>backup_file</code></td><td>Timestamped copy before any edit</td></tr>
+      </tbody>
+    </table>
+
+    <hr/>
+
+    <!-- ──────────────────────────── SCENARIOS ──────────────────────────── -->
+
+    <!-- Scenario A -->
+    <div class="scenario-header" id="scenario-a">
+      <span class="scenario-badge">Scenario A</span>
+      <h2>First Look at a New Model</h2>
+    </div>
+    <p class="scenario-situation">The FP&amp;A team has sent you <code>FY26_Operating_Model.xlsx</code>. You've never seen it before and the board meeting is in two days.</p>
+
+    <h3>Step 1 — Orient yourself</h3>
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">I just received <code>FY26_Operating_Model.xlsx</code>. Can you give me a high-level orientation — what sheets, named ranges, and roughly how complex is it?</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">get_workbook_info_tool</span></div>
+          <div class="chat-text">
+            <p>The workbook has <strong>8 sheets</strong>: Assumptions, Revenue, COGS, OpEx, P&amp;L, Balance Sheet, Cash Flow, and Summary Dashboard.</p>
+            <p>There are <strong>23 named ranges</strong>, including <code>Revenue_FY26</code>, <code>EBITDA_Margin_Target</code>, and <code>CapEx_FY26</code>.</p>
+            <p>This is a mid-sized model. The most formula-dense sheet appears to be P&amp;L.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Step 2 — Run the audit immediately</h3>
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Before I spend time reading this, run a full audit. I want to know if there are any integrity issues.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">run_audit_tool</span></div>
+          <div class="chat-text">
+            <p><strong>Health Score: <span class="result-warn">74 / 100</span></strong></p>
+            <table><thead><tr><th>Severity</th><th>Count</th></tr></thead><tbody>
+              <tr><td>🔴 Error</td><td>3</td></tr>
+              <tr><td>🟡 Warning</td><td>8</td></tr>
+              <tr><td>ℹ️ Info</td><td>12</td></tr>
+            </tbody></table>
+            <p><span class="result-err">🔴</span> <strong>Broken external link</strong> — <code>Revenue!B15</code> references <code>[DataFeed_2025.xlsx]</code> but that file is not in your workspace. Value may be stale.</p>
+            <p><span class="result-err">🔴</span> <strong>Formula error</strong> — <code>Cash Flow!D22</code> contains <code>#REF!</code>. A row was likely deleted upstream.</p>
+            <p><span class="result-warn">🟡</span> <strong>Possible unit error</strong> — <code>Assumptions!B4</code> (Interest Rate) is <code>8.5</code>. Should this be <code>0.085</code>?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Step 3 — Fix the #REF! error</h3>
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Fix the #REF! in Cash Flow D22. Show me what the formula should be by looking at surrounding cells first.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">read_sheet_tool</span> <span class="tool-call">get_cell_tool</span></div>
+          <div class="chat-text">
+            <p>D21 and D23 both reference <code>P&amp;L!D{row}</code> — D22 should be <code>=P&amp;L!D22</code>. Shall I back up and apply this fix?</p>
+          </div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Yes, backup and fix it.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">backup_file_tool</span> <span class="tool-call">update_cells_tool</span></div>
+          <div class="chat-text">
+            <p><span class="result-ok">✅ Backup saved</span> as <code>FY26_Operating_Model_2026-03-11_143022.xlsx</code></p>
+            <p><span class="result-ok">✅ Cash Flow!D22</span> updated to <code>=P&amp;L!D22</code></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Scenario B -->
+    <div class="scenario-header" id="scenario-b">
+      <span class="scenario-badge">Scenario B</span>
+      <h2>Board Pack Prep — Audit Before You Publish</h2>
+    </div>
+    <p class="scenario-situation">The board pack goes out Friday. You need to be certain the model is clean before the numbers are locked.</p>
+
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Run the full audit on <code>Board_Pack_March_2026.xlsx</code> and give me a prioritised action list to resolve everything before Friday.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">run_audit_tool</span></div>
+          <div class="chat-text">
+            <p><strong>Health Score: <span class="result-warn">68 / 100</span></strong></p>
+            <p><strong>Priority 1 — Fix now</strong></p>
+            <ol>
+              <li><code>P&amp;L!F30</code>: <code>#DIV/0!</code> — denominator is zero. Check <code>P&amp;L!F5</code>.</li>
+              <li><code>Summary!C12</code> references <code>[Last_Year_Actuals.xlsx]</code> — file not found.</li>
+            </ol>
+            <p><strong>Priority 2 — Review</strong></p>
+            <ol start="3">
+              <li><code>Assumptions!B3</code> (Tax Rate) = <code>28</code> — should this be <code>0.28</code>?</li>
+              <li><code>OpEx!B8:B11</code> — formula pattern breaks at B10 (hardcoded <code>120,000</code>). Was this intentional?</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Scenario C -->
+    <div class="scenario-header" id="scenario-c">
+      <span class="scenario-badge">Scenario C</span>
+      <h2>Budget vs Actuals — Monthly Close</h2>
+    </div>
+    <p class="scenario-situation">March actuals just came in. You have <code>Budget_FY26.xlsx</code> and <code>Actuals_Mar_2026.xlsx</code>. You need the variance report in 10 minutes.</p>
+
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Compare <code>Budget_FY26.xlsx</code> against <code>Actuals_Mar_2026.xlsx</code>. Focus on Revenue and P&amp;L sheets. Highlight anything unfavourable over $50K.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">compare_workbooks_tool</span></div>
+          <div class="chat-text">
+            <table>
+              <thead><tr><th>Cell</th><th>Description</th><th>Budget</th><th>Actual</th><th>Variance</th><th>Direction</th></tr></thead>
+              <tbody>
+                <tr><td><code>Revenue!C5</code></td><td>Enterprise Revenue</td><td>$2.4M</td><td>$2.1M</td><td>-$300K</td><td>🔴 Unfavourable</td></tr>
+                <tr><td><code>Revenue!C8</code></td><td>SMB Revenue</td><td>$820K</td><td>$910K</td><td>+$90K</td><td>🟢 Favourable</td></tr>
+                <tr><td><code>P&amp;L!C22</code></td><td>Gross Margin</td><td>64.2%</td><td>61.8%</td><td>-2.4pp</td><td>🔴 Unfavourable</td></tr>
+                <tr><td><code>P&amp;L!C41</code></td><td>EBITDA</td><td>$380K</td><td>$290K</td><td>-$90K</td><td>🔴 Unfavourable</td></tr>
+              </tbody>
+            </table>
+            <p><strong>Summary:</strong> Enterprise revenue missed by $300K — the main EBITDA driver. SMB was a bright spot.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Scenario D -->
+    <div class="scenario-header" id="scenario-d">
+      <span class="scenario-badge">Scenario D</span>
+      <h2>Scenario Planning — Bear / Base / Bull</h2>
+    </div>
+    <p class="scenario-situation">The board wants downside sensitivity before approving the capex budget.</p>
+
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">
+            Run Bear / Base / Bull scenarios on <code>FY26_Operating_Model.xlsx</code>.<br/>
+            Bear: Revenue growth 5%, COGS 68%, churn 15%.<br/>
+            Base: 12%, 65%, 10%. &nbsp;Bull: 20%, 62%, 7%.<br/>
+            Show impact on EBITDA (<code>P&amp;L!B41</code>) and FCF (<code>Cash Flow!B55</code>).
+          </div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">run_scenarios_tool</span></div>
+          <div class="chat-text">
+            <table>
+              <thead><tr><th>Metric</th><th>Bear</th><th>Base</th><th>Bull</th></tr></thead>
+              <tbody>
+                <tr><td>EBITDA</td><td>$1.2M</td><td>$3.8M</td><td>$6.1M</td></tr>
+                <tr><td>vs Base</td><td>-$2.6M (-68%)</td><td>—</td><td>+$2.3M (+61%)</td></tr>
+                <tr><td>Free Cash Flow</td><td>$0.4M</td><td>$2.1M</td><td>$4.5M</td></tr>
+                <tr><td>vs Base</td><td>-$1.7M (-81%)</td><td>—</td><td>+$2.4M (+114%)</td></tr>
+              </tbody>
+            </table>
+            <p>⚠️ Bear case puts FCF at $0.4M — within uncertainty margin for the planned $800K capex spend.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Sensitivity table</h3>
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Build a sensitivity table — revenue growth 4%–22% (step 2%), churn 7%–17%.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">build_sensitivity_table_tool</span></div>
+          <div class="chat-text">
+            <p><strong>EBITDA Sensitivity — Rows: Revenue Growth / Columns: Churn Rate</strong></p>
+            <table>
+              <thead><tr><th></th><th>7%</th><th>9%</th><th>11%</th><th>13%</th><th>15%</th><th>17%</th></tr></thead>
+              <tbody>
+                <tr><td><strong>4%</strong></td><td>$2.1M</td><td>$1.7M</td><td>$1.3M</td><td>$0.9M</td><td>$0.5M</td><td>$0.1M</td></tr>
+                <tr><td><strong>8%</strong></td><td>$3.1M</td><td>$2.7M</td><td>$2.3M</td><td>$1.9M</td><td>$1.5M</td><td>$1.1M</td></tr>
+                <tr><td><strong>12%</strong></td><td>$4.0M</td><td>$3.6M</td><td>$3.2M</td><td>$2.8M</td><td>$2.4M</td><td>$2.0M</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Scenario E -->
+    <div class="scenario-header" id="scenario-e">
+      <span class="scenario-badge">Scenario E</span>
+      <h2>Dependency Investigation — "Why Did This Number Change?"</h2>
+    </div>
+    <p class="scenario-situation">EBITDA changed between the v1 and v2 model drafts, but nobody can explain why.</p>
+
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">EBITDA in <code>P&amp;L!B41</code> changed between the two model versions. Show me everything that feeds into that cell.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">get_cell_precedents_tool</span></div>
+          <div class="chat-text">
+            <p><code>P&amp;L!B41</code> is driven by <strong>47 cells</strong> across 3 hops. Key upstream: <code>Assumptions!B3</code> (Headcount), <code>Assumptions!B7</code> (COGS %), <code>Assumptions!B12</code> (Average Salary).</p>
+            <p>Compare these 47 cells between v1 and v2?</p>
+          </div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Yes — filter to just the cells that feed EBITDA.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">compare_workbooks_tool</span></div>
+          <div class="chat-text">
+            <p>Found <strong>1 change</strong>:</p>
+            <table><thead><tr><th>Cell</th><th>Description</th><th>v1</th><th>v2</th><th>Change</th></tr></thead>
+            <tbody><tr><td><code>Assumptions!B12</code></td><td>Average Annual Salary</td><td>$95,000</td><td>$112,000</td><td>+$17K (+17.9%)</td></tr></tbody></table>
+            <p>That single change adds ~$578K to OpEx across 34 headcount, which flows directly to EBITDA.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Scenario F -->
+    <div class="scenario-header" id="scenario-f">
+      <span class="scenario-badge">Scenario F</span>
+      <h2>Multi-File Model — Following the Data Chain</h2>
+    </div>
+    <p class="scenario-situation">The revenue model pulls from a separate <code>DataFeed.xlsx</code>. You want to understand the full data lineage.</p>
+
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Scan <code>FY26_Operating_Model.xlsx</code> for external file references. Are they all valid?</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">scan_external_references_tool</span></div>
+          <div class="chat-text">
+            <table>
+              <thead><tr><th>Referenced File</th><th>Status</th><th>Cells</th></tr></thead>
+              <tbody>
+                <tr><td><code>DataFeed_2025.xlsx</code></td><td><span class="result-ok">✅ Found</span></td><td>3 cells</td></tr>
+                <tr><td><code>Actuals_Q3_2025.xlsx</code></td><td><span class="result-ok">✅ Found</span></td><td>8 cells</td></tr>
+                <tr><td><code>HR_Headcount.xlsx</code></td><td><span class="result-err">❌ Not found</span></td><td>2 cells</td></tr>
+                <tr><td><code>CapEx_Schedule.xlsx</code></td><td><span class="result-err">❌ Not found</span></td><td>1 cell</td></tr>
+              </tbody>
+            </table>
+            <p>The 2 missing files mean those cells are using stale cached values.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Scenario G -->
+    <div class="scenario-header" id="scenario-g">
+      <span class="scenario-badge">Scenario G</span>
+      <h2>Time-Series Review — Spotting Anomalies</h2>
+    </div>
+    <p class="scenario-situation">Before the investor update, review the revenue trend and flag anything suspicious.</p>
+
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Analyse the time series for the P&amp;L sheet. Flag any rows with unusual jumps or statistical anomalies.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">analyse_timeseries_tool</span></div>
+          <div class="chat-text">
+            <p><strong>⚠️ Anomalous rows (values &gt;2σ from trend):</strong></p>
+            <table>
+              <thead><tr><th>Row</th><th>Period</th><th>Value</th><th>Expected Range</th></tr></thead>
+              <tbody>
+                <tr><td>Sales &amp; Marketing (Row 35)</td><td>August</td><td>$1.2M</td><td>$420K–$680K</td></tr>
+                <tr><td>Depreciation (Row 44)</td><td>March</td><td>$0</td><td>$85K–$110K</td></tr>
+              </tbody>
+            </table>
+            <p>The August S&amp;M spike looks like a one-off (conference?). The March Depreciation zero is likely a data error.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Scenario H -->
+    <div class="scenario-header" id="scenario-h">
+      <span class="scenario-badge">Scenario H</span>
+      <h2>Interactive Labelling — Building a Model Map</h2>
+    </div>
+    <p class="scenario-situation">You're inheriting a model with no documentation. Build a semantic map that makes it self-documenting.</p>
+
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Label <code>Assumptions!B2</code> as "Revenue Growth Rate" (category: assumption), B3 as "Total Headcount" (category: driver), and B4 as "Interest Rate (check units)" (category: assumption) with a note about the possible decimal issue.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">set_cell_label_tool</span> ×3</div>
+          <div class="chat-text">
+            <p><span class="result-ok">✅ B2</span> — "Revenue Growth Rate" [assumption]</p>
+            <p><span class="result-ok">✅ B3</span> — "Total Headcount" [driver]</p>
+            <p><span class="result-ok">✅ B4</span> — "Interest Rate (check units)" [assumption] with note: "Value is 8.5 — confirm 0.085 or integer format"</p>
+            <p>Review progress: 3 / 14 Assumptions cells labelled (21%). Continue with B5?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Scenario I -->
+    <div class="scenario-header" id="scenario-i">
+      <span class="scenario-badge">Scenario I</span>
+      <h2>Making a Safe Edit</h2>
+    </div>
+    <p class="scenario-situation">Update the headcount assumption from 34 to 38 to reflect new hires just approved by the board.</p>
+
+    <div class="chat-block">
+      <div class="chat-turn">
+        <div class="chat-av av-you">You</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-you">You</div>
+          <div class="chat-text">Update <code>Assumptions!B3</code> from 34 to 38. Make a backup first.</div>
+        </div>
+      </div>
+      <div class="chat-turn">
+        <div class="chat-av av-claude">AI</div>
+        <div class="chat-body">
+          <div class="chat-who chat-who-claude">Claude <span class="tool-call">backup_file_tool</span> <span class="tool-call">update_cells_tool</span></div>
+          <div class="chat-text">
+            <p><span class="result-ok">✅ Backup saved:</span> <code>FY26_Operating_Model_2026-03-11_153044.xlsx</code></p>
+            <p><span class="result-ok">✅ Assumptions!B3</span> = 38</p>
+            <p><strong>Downstream impact:</strong> This cell drives <strong>12 cells</strong> across OpEx and P&amp;L, including EBITDA. The additional headcount adds ~$578K in salary costs when recalculated in Excel.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Prompt Reference -->
+    <h2 id="prompt-reference">Prompt Reference Card</h2>
+    <p>Copy and adapt these prompts for your daily workflow.</p>
+
+    <h3>Orientation &amp; Audit</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-label">Prompts</div>
+      <pre>Give me an overview of [filename.xlsx] — sheets, named ranges, and complexity.
+Run a full audit on [filename.xlsx] and prioritise the issues for me.</pre>
+    </div>
+
+    <h3>Variance / Monthly Close</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-label">Prompts</div>
+      <pre>Compare [budget.xlsx] against [actuals.xlsx] and show variances over $[X].
+Compare the Budget sheet vs the Actuals sheet in [filename.xlsx].
+Show me period-over-period changes between column B and column C in the P&amp;L sheet.</pre>
+    </div>
+
+    <h3>Scenarios</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-label">Prompts</div>
+      <pre>Run Bear / Base / Bull scenarios on [filename.xlsx].
+Assumptions: [list your assumption cells and values].
+Show me the impact on [KPI cell].
+
+Build a sensitivity table for [output cell], varying [assumption 1] from X to Y
+and [assumption 2] from A to B.</pre>
+    </div>
+
+    <h3>Dependencies</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-label">Prompts</div>
+      <pre>What drives [cell reference]? Show me all precedents up to 3 hops.
+If I change [cell reference], what else in the model gets affected?
+Show me the dependency diagram for [sheet name].
+Export an interactive HTML dependency map I can share with the team.</pre>
+    </div>
+
+    <h3>Time Series</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-label">Prompts</div>
+      <pre>Analyse the time series for the [sheet name] sheet. Flag any anomalies.
+Show me the full monthly detail for the Revenue row including growth rates and trend.</pre>
+    </div>
+
+    <h3>Cross-File Linkage</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-label">Prompts</div>
+      <pre>Scan [filename.xlsx] for external file references. Are they all valid?
+Trace where the value in [cell reference] ultimately comes from, following any external links.</pre>
+    </div>
+
+    <h3>Labelling</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-label">Prompts</div>
+      <pre>Show me the unlabelled input cells on [sheet name].
+Label [cell reference] as "[name]", category [assumption/driver/output/check].
+How much of [filename.xlsx] have we labelled? Show me coverage by sheet.</pre>
+    </div>
+
+    <h3>Safe Edits</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-label">Prompts</div>
+      <pre>Update [cell reference] to [value]. Create a backup first.
+Add a note to [cell reference] saying: "[your note]".</pre>
+    </div>
+
+    <hr/>
+
+    <!-- Tips -->
+    <h2 id="tips">Tips and Best Practices</h2>
+
+    <h3>For the CFO</h3>
+    <ol>
+      <li><strong>Always audit first.</strong> Before any board pack or investor meeting, run <code>run_audit</code>. A health score below 80 deserves investigation.</li>
+      <li><strong>Scenarios are always safe.</strong> The <code>run_scenarios</code> tool never modifies your file. Run as many as you like with zero risk.</li>
+      <li><strong>Label as you go.</strong> Every time you discover what a cell means, label it. After a few sessions you'll have a self-documenting model.</li>
+      <li><strong>Use provenance before decisions.</strong> Before acting on a number, trace it. "Where does this $2.4M come from?" is answerable in 30 seconds.</li>
+      <li><strong>Keep files in the workspace folder.</strong> Anything in <code>~/Documents/ForecastAI/</code> is automatically accessible.</li>
+    </ol>
+
+    <h3>For the Model</h3>
+    <ol>
+      <li><strong>One assumption, one cell.</strong> The audit tool flags hardcoded assumptions inside formulas.</li>
+      <li><strong>Label all unlabelled inputs before the board meeting.</strong></li>
+      <li><strong>Consistent formula patterns across time columns.</strong> Breaks flag manual overrides.</li>
+      <li><strong>No broken external links.</strong> <code>scan_external_references</code> will catch stale links.</li>
+    </ol>
+
+    <h3>Working with Claude</h3>
+    <ol>
+      <li><strong>Be specific about cells.</strong> "Revenue cell" is ambiguous. <code>Revenue!B5</code> is not.</li>
+      <li><strong>Ask for reasoning, not just numbers.</strong> Claude can explain <em>why</em> a variance exists.</li>
+      <li><strong>Chain your questions.</strong> After an audit, fix issues one by one. Each answer builds on the last.</li>
+      <li><strong>Confirm before any write.</strong> Claude always offers a backup before modifying a file.</li>
+    </ol>
+
+    <div class="callout" style="margin-top:2.5rem;">
+      <strong>Download the PDF version</strong><br/>
+      A printable version of this tutorial is available: <a href="CFO_TUTORIAL.pdf">CFO_TUTORIAL.pdf</a>
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  <p>ForecastAI · <a href="index.html">Home</a> · <a href="https://github.com/me883/forecastai-dist/releases/latest">Download</a> · <a href="https://github.com/me883/forecastAI">Source</a></p>
+  <p style="margin-top:0.4rem;font-size:0.8rem;color:#94a3b8;">Built by <a href="https://github.com/me883">me883</a> · April 2026</p>
+</footer>
+
+</body>
+</html>

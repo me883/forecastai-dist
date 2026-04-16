@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ForecastAI — Excel Intelligence for Claude Desktop</title>
+  <meta name="description" content="An MCP server that lets Claude Desktop read, reason over, and edit Excel financial models. 34 tools for CFOs and analysts."/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-900: #1e3a8a;
+      --blue-700: #1d4ed8;
+      --blue-500: #3b82f6;
+      --blue-100: #dbeafe;
+      --blue-50:  #eff6ff;
+      --slate-900: #0f172a;
+      --slate-700: #334155;
+      --slate-500: #64748b;
+      --slate-200: #e2e8f0;
+      --slate-50:  #f8fafc;
+      --green-600: #16a34a;
+      --amber-500: #f59e0b;
+      --violet-600: #7c3aed;
+      --white: #ffffff;
+      --radius: 10px;
+      --shadow: 0 4px 24px rgba(15,23,42,0.10);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--slate-700);
+      background: var(--white);
+    }
+
+    a { color: var(--blue-700); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--slate-200);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 56px;
+    }
+    .nav-brand {
+      font-weight: 700; font-size: 1rem; color: var(--slate-900);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .nav-brand span { color: var(--blue-700); }
+    .nav-links { display: flex; gap: 1.5rem; font-size: 0.875rem; }
+    .nav-links a { color: var(--slate-700); font-weight: 500; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.45rem 1.1rem; border-radius: 6px;
+      font-size: 0.875rem; font-weight: 600; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; text-decoration: none; }
+    .btn-primary { background: var(--blue-700); color: var(--white); }
+    .btn-ghost   { border: 1.5px solid var(--slate-200); color: var(--slate-700); }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--slate-900) 0%, #1e3a8a 100%);
+      color: var(--white);
+      padding: 5rem 2rem 4rem;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(59,130,246,0.25);
+      color: #93c5fd;
+      border: 1px solid rgba(59,130,246,0.4);
+      border-radius: 99px;
+      padding: 0.25rem 0.85rem;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em;
+      text-transform: uppercase; margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      font-weight: 800; line-height: 1.15;
+      color: var(--white); margin-bottom: 1.25rem;
+    }
+    .hero h1 em { font-style: normal; color: #93c5fd; }
+    .hero p {
+      font-size: 1.125rem; color: #cbd5e1;
+      max-width: 600px; margin: 0 auto 2rem;
+    }
+    .hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-hero-primary {
+      background: var(--blue-500); color: var(--white);
+      padding: 0.75rem 1.75rem; font-size: 1rem; border-radius: 8px;
+    }
+    .btn-hero-ghost {
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: var(--white);
+      padding: 0.75rem 1.75rem; font-size: 1rem; border-radius: 8px;
+    }
+    .hero-stats {
+      display: flex; gap: 2.5rem; justify-content: center; flex-wrap: wrap;
+      margin-top: 3rem; padding-top: 2.5rem;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 2rem; font-weight: 800; color: var(--white); }
+    .stat-label { font-size: 0.8rem; color: #94a3b8; margin-top: 0.15rem; }
+
+    /* ── Section wrapper ── */
+    .section { padding: 4.5rem 2rem; }
+    .section-alt { background: var(--slate-50); }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--blue-700); margin-bottom: 0.5rem;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3vw, 2.25rem);
+      font-weight: 800; color: var(--slate-900);
+      margin-bottom: 1rem; line-height: 1.2;
+    }
+    .section-sub {
+      font-size: 1.05rem; color: var(--slate-500);
+      max-width: 580px; margin-bottom: 2.5rem;
+    }
+
+    /* ── How it works ── */
+    .flow {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      justify-content: center; margin-top: 2rem;
+    }
+    .flow-box {
+      background: var(--white); border: 1.5px solid var(--slate-200);
+      border-radius: var(--radius); padding: 1.25rem 1.5rem;
+      text-align: center; width: 180px; box-shadow: var(--shadow);
+    }
+    .flow-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    .flow-name { font-weight: 700; font-size: 0.9rem; color: var(--slate-900); }
+    .flow-desc { font-size: 0.78rem; color: var(--slate-500); margin-top: 0.2rem; }
+    .flow-arrow {
+      font-size: 1.25rem; color: var(--slate-200);
+      padding: 0 0.5rem;
+    }
+
+    /* ── Tool category cards ── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.25rem; margin-top: 0.5rem;
+    }
+    .tool-card {
+      background: var(--white); border: 1.5px solid var(--slate-200);
+      border-radius: var(--radius); padding: 1.4rem 1.5rem;
+      box-shadow: var(--shadow);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .tool-card:hover {
+      border-color: var(--blue-500);
+      box-shadow: 0 4px 24px rgba(59,130,246,0.15);
+    }
+    .tool-card-header {
+      display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;
+    }
+    .tool-icon {
+      width: 38px; height: 38px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .tool-card-title { font-weight: 700; font-size: 0.95rem; color: var(--slate-900); }
+    .tool-card-count { font-size: 0.75rem; color: var(--slate-500); }
+    .tool-list { list-style: none; }
+    .tool-list li {
+      font-size: 0.83rem; color: var(--slate-700);
+      padding: 0.2rem 0;
+      display: flex; align-items: baseline; gap: 0.4rem;
+    }
+    .tool-list li::before { content: "→"; color: var(--blue-500); font-size: 0.7rem; flex-shrink: 0; }
+
+    /* ── Scenarios ── */
+    .scenarios-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+    .scenario-card {
+      background: var(--white); border: 1.5px solid var(--slate-200);
+      border-radius: var(--radius); padding: 1.4rem 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .scenario-tag {
+      display: inline-block;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 0.2rem 0.6rem;
+      border-radius: 99px; margin-bottom: 0.75rem;
+    }
+    .scenario-card h3 { font-size: 1rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.4rem; }
+    .scenario-card p  { font-size: 0.875rem; color: var(--slate-500); }
+
+    /* ── Chat demo ── */
+    .chat-demo {
+      background: var(--white); border: 1.5px solid var(--slate-200);
+      border-radius: var(--radius); padding: 1.5rem;
+      box-shadow: var(--shadow); max-width: 720px; margin: 0 auto;
+    }
+    .chat-demo h3 {
+      font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--slate-500);
+      margin-bottom: 1rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--slate-200);
+    }
+    .chat-msg { margin-bottom: 1rem; display: flex; gap: 0.75rem; align-items: flex-start; }
+    .chat-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    }
+    .avatar-you    { background: var(--blue-700); color: var(--white); }
+    .avatar-claude { background: #d946ef; color: var(--white); }
+    .chat-bubble {
+      font-size: 0.875rem; line-height: 1.55; color: var(--slate-700);
+    }
+    .chat-bubble strong { color: var(--slate-900); }
+    .chat-tool {
+      display: inline-block; font-size: 0.75rem;
+      background: var(--blue-50); color: var(--blue-700);
+      border: 1px solid var(--blue-100); border-radius: 4px;
+      padding: 0.15rem 0.5rem; font-family: monospace;
+      margin: 0.15rem 0.1rem;
+    }
+    .chat-result {
+      margin-top: 0.5rem; padding: 0.75rem;
+      background: var(--slate-50); border-radius: 6px;
+      font-size: 0.82rem; color: var(--slate-700); line-height: 1.5;
+    }
+    .result-good  { color: var(--green-600); font-weight: 600; }
+    .result-warn  { color: var(--amber-500); font-weight: 600; }
+    .result-error { color: #dc2626; font-weight: 600; }
+
+    /* ── Install ── */
+    .install-steps { counter-reset: step; }
+    .install-step {
+      display: flex; gap: 1.25rem; margin-bottom: 2rem;
+    }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--blue-700); color: var(--white);
+      font-weight: 800; font-size: 0.95rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .step-body h4 { font-size: 1rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.3rem; }
+    .step-body p  { font-size: 0.9rem; color: var(--slate-500); margin-bottom: 0.5rem; }
+    .code-block {
+      background: var(--slate-900); color: #e2e8f0;
+      border-radius: 8px; padding: 1rem 1.25rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.825rem; line-height: 1.6;
+      overflow-x: auto; white-space: pre;
+    }
+    .code-block .comment { color: #64748b; }
+    .code-block .string  { color: #86efac; }
+    .code-block .key     { color: #93c5fd; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--slate-900); color: #94a3b8;
+      padding: 3rem 2rem; text-align: center;
+    }
+    footer .footer-brand {
+      font-size: 1.25rem; font-weight: 800; color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+    footer p { font-size: 0.875rem; margin-bottom: 0.3rem; }
+    footer a { color: #93c5fd; }
+    .footer-links {
+      display: flex; gap: 1.5rem; justify-content: center;
+      margin-top: 1.5rem; flex-wrap: wrap;
+    }
+    .footer-links a { font-size: 0.875rem; color: #94a3b8; }
+    .footer-links a:hover { color: var(--white); }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .flow { gap: 0.75rem; }
+      .flow-arrow { display: none; }
+      .hero { padding: 3.5rem 1.25rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <div class="nav-brand">📊 <span>Forecast</span>AI</div>
+  <div class="nav-links">
+    <a href="#how-it-works">How it works</a>
+    <a href="#tools">Tools</a>
+    <a href="#scenarios">Scenarios</a>
+    <a href="#install">Install</a>
+    <a href="tutorial.html">CFO Tutorial</a>
+  </div>
+  <a href="https://github.com/me883/forecastai-dist/releases/latest" class="btn btn-primary">
+    ⬇ Download
+  </a>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="badge">Model Context Protocol · Excel · Claude Desktop</div>
+  <h1>Excel intelligence for<br/><em>financial professionals</em></h1>
+  <p>An MCP server that lets Claude Desktop read, reason over, and safely edit your Excel financial models — no macros, no VBA, just a conversation.</p>
+  <div class="hero-cta">
+    <a href="#install" class="btn btn-hero-primary">Get started free →</a>
+    <a href="tutorial.html" class="btn btn-hero-ghost">Read the CFO tutorial</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">34</div>
+      <div class="stat-label">MCP Tools</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">90</div>
+      <div class="stat-label">Tests passing</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Lines of code needed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">xlsx</div>
+      <div class="stat-label">+ legacy .xls</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div class="section-label">Architecture</div>
+    <h2 class="section-title">You talk. Claude reads your Excel.</h2>
+    <p class="section-sub">ForecastAI sits between Claude Desktop and your workbooks as an MCP server. Your files never leave your machine.</p>
+
+    <div class="flow">
+      <div class="flow-box">
+        <div class="flow-icon">💬</div>
+        <div class="flow-name">You</div>
+        <div class="flow-desc">Ask a question in Claude Desktop</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-icon">🤖</div>
+        <div class="flow-name">Claude</div>
+        <div class="flow-desc">Decides which tools to call</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-icon">⚙️</div>
+        <div class="flow-name">ForecastAI</div>
+        <div class="flow-desc">Reads / writes your Excel file</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-icon">📊</div>
+        <div class="flow-name">Your Model</div>
+        <div class="flow-desc">.xlsx stays on your machine</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Demo chat ── -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-label">Live example</div>
+    <h2 class="section-title">What a conversation looks like</h2>
+    <p class="section-sub">Ask plain-English questions. Claude calls the right tools automatically.</p>
+
+    <div class="chat-demo">
+      <h3>Claude Desktop — ForecastAI connected</h3>
+
+      <div class="chat-msg">
+        <div class="chat-avatar avatar-you">You</div>
+        <div class="chat-bubble">Run a full audit on FY26_Operating_Model.xlsx before I send it to the board.</div>
+      </div>
+
+      <div class="chat-msg">
+        <div class="chat-avatar avatar-claude">AI</div>
+        <div class="chat-bubble">
+          Running the audit now…
+          <span class="chat-tool">run_audit_tool</span>
+          <span class="chat-tool">build_dependency_graph_tool</span>
+          <div class="chat-result">
+            <strong>Health Score: <span class="result-warn">74 / 100</span></strong> — 3 errors, 8 warnings to review.<br/><br/>
+            <span class="result-error">🔴 Revenue!B15</span> — broken link to [DataFeed_2025.xlsx] — file not in workspace, value may be stale.<br/>
+            <span class="result-error">🔴 Cash Flow!D22</span> — contains #REF! — a row was likely deleted upstream.<br/>
+            <span class="result-warn">🟡 Assumptions!B4</span> — Interest Rate = 8.5. Other rates use decimals — should this be 0.085?<br/><br/>
+            Want me to fix the #REF! first? I'll back up the file before making any changes.
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-msg">
+        <div class="chat-avatar avatar-you">You</div>
+        <div class="chat-bubble">Yes — backup and fix it.</div>
+      </div>
+
+      <div class="chat-msg">
+        <div class="chat-avatar avatar-claude">AI</div>
+        <div class="chat-bubble">
+          <span class="chat-tool">backup_file_tool</span>
+          <span class="chat-tool">get_cell_tool</span>
+          <span class="chat-tool">update_cells_tool</span>
+          <div class="chat-result">
+            <span class="result-good">✅ Backup saved</span> as FY26_Operating_Model_2026-04-15_143022.xlsx<br/>
+            <span class="result-good">✅ Cash Flow!D22</span> updated to <code>=P&amp;L!D22</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Tools ── -->
+<section class="section" id="tools">
+  <div class="container">
+    <div class="section-label">Capabilities</div>
+    <h2 class="section-title">34 tools across 8 categories</h2>
+    <p class="section-sub">Every tool is available directly in Claude Desktop — no configuration required.</p>
+
+    <div class="tools-grid">
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div class="tool-icon" style="background:#eff6ff;">🔍</div>
+          <div>
+            <div class="tool-card-title">Explore</div>
+            <div class="tool-card-count">6 tools</div>
+          </div>
+        </div>
+        <ul class="tool-list">
+          <li>Sheet names, named ranges, file format</li>
+          <li>Full sheet contents with formulas</li>
+          <li>Deep single-cell inspection (formula, style, comment)</li>
+          <li>All formulas in the workbook</li>
+          <li>Named range resolution</li>
+          <li>Embedded chart metadata</li>
+        </ul>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div class="tool-icon" style="background:#fef9c3;">🩺</div>
+          <div>
+            <div class="tool-card-title">Audit</div>
+            <div class="tool-card-count">1 tool · 7 checks</div>
+          </div>
+        </div>
+        <ul class="tool-list">
+          <li>Hardcoded values in formula ranges</li>
+          <li>Inconsistent formula patterns</li>
+          <li>Broken external file links</li>
+          <li>Excel errors (#REF!, #DIV/0!, etc.)</li>
+          <li>Sanity bounds on rates & percentages</li>
+          <li>Unlabelled critical inputs</li>
+          <li>Empty gaps in data ranges</li>
+        </ul>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div class="tool-icon" style="background:#f0fdf4;">📈</div>
+          <div>
+            <div class="tool-card-title">Variance Analysis</div>
+            <div class="tool-card-count">3 tools</div>
+          </div>
+        </div>
+        <ul class="tool-list">
+          <li>Cell-by-cell diff of two workbooks</li>
+          <li>Budget vs Actuals within one file</li>
+          <li>Period-over-period column comparison</li>
+          <li>Favourable / unfavourable direction scoring</li>
+          <li>Threshold filtering (ignore small variances)</li>
+        </ul>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div class="tool-icon" style="background:#faf5ff;">🎭</div>
+          <div>
+            <div class="tool-card-title">Scenario Analysis</div>
+            <div class="tool-card-count">2 tools</div>
+          </div>
+        </div>
+        <ul class="tool-list">
+          <li>Bear / Base / Bull — non-destructive, in-memory</li>
+          <li>2D sensitivity table (two assumptions × one output)</li>
+          <li>Named assumption overrides with comparison table</li>
+          <li>No formula recalculation engine required</li>
+        </ul>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div class="tool-icon" style="background:#fff7ed;">⏱️</div>
+          <div>
+            <div class="tool-card-title">Time Series</div>
+            <div class="tool-card-count">3 tools</div>
+          </div>
+        </div>
+        <ul class="tool-list">
+          <li>Auto-detect month/quarter/year headers</li>
+          <li>Period-over-period % changes and CAGR</li>
+          <li>Trend direction per row (up/down/flat)</li>
+          <li>Statistical anomaly detection (σ-threshold)</li>
+          <li>Trailing average calculations</li>
+        </ul>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div class="tool-icon" style="background:#fdf2f8;">🔗</div>
+          <div>
+            <div class="tool-card-title">Cross-File Linkage</div>
+            <div class="tool-card-count">2 tools</div>
+          </div>
+        </div>
+        <ul class="tool-list">
+          <li>Find all [OtherFile.xlsx] references</li>
+          <li>Resolve and validate linked files</li>
+          <li>Flag broken / stale external links</li>
+          <li>Recursive provenance chain tracing</li>
+        </ul>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div class="tool-icon" style="background:#ecfeff;">🕸️</div>
+          <div>
+            <div class="tool-card-title">Dependency Graph</div>
+            <div class="tool-card-count">5 tools</div>
+          </div>
+        </div>
+        <ul class="tool-list">
+          <li>Full formula dependency DAG</li>
+          <li>Precedents and dependents per cell</li>
+          <li>Impact analysis (how many cells affected?)</li>
+          <li>Cycle detection and topological order</li>
+          <li>Mermaid diagram + interactive HTML export</li>
+        </ul>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div class="tool-icon" style="background:#fff1f2;">✏️</div>
+          <div>
+            <div class="tool-card-title">Safe Edits</div>
+            <div class="tool-card-count">4 tools</div>
+          </div>
+        </div>
+        <ul class="tool-list">
+          <li>Timestamped backup before any write</li>
+          <li>Write values or formulas to cells</li>
+          <li>Add / delete worksheets</li>
+          <li>Semantic labels with persistent sidecar JSON</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Scenarios ── -->
+<section class="section section-alt" id="scenarios">
+  <div class="container">
+    <div class="section-label">Use cases</div>
+    <h2 class="section-title">Built for CFO workflows</h2>
+    <p class="section-sub">Real scenarios a finance leader can run in minutes, not hours.</p>
+
+    <div class="scenarios-grid">
+      <div class="scenario-card">
+        <span class="scenario-tag" style="background:#dbeafe;color:#1d4ed8;">Board Prep</span>
+        <h3>Audit before you publish</h3>
+        <p>Run a 7-check integrity scan and get a health score before locking board pack numbers. Broken links, formula errors and unit mismatches surface in seconds.</p>
+      </div>
+      <div class="scenario-card">
+        <span class="scenario-tag" style="background:#dcfce7;color:#16a34a;">Monthly Close</span>
+        <h3>Budget vs Actuals in 30 seconds</h3>
+        <p>Compare two workbooks cell-by-cell. Filter to sheets that matter, set a variance threshold, and get a ranked table of favourable and unfavourable movements.</p>
+      </div>
+      <div class="scenario-card">
+        <span class="scenario-tag" style="background:#faf5ff;color:#7c3aed;">Planning</span>
+        <h3>Bear / Base / Bull scenarios</h3>
+        <p>Run named scenarios without touching the file. Override assumptions in natural language and see the impact on EBITDA and FCF instantly.</p>
+      </div>
+      <div class="scenario-card">
+        <span class="scenario-tag" style="background:#fff7ed;color:#c2410c;">Investigation</span>
+        <h3>"Why did this number change?"</h3>
+        <p>Trace any cell's precedents up to N hops. Compare two model versions filtered to only the cells that feed a specific output — pinpoint the one changed assumption.</p>
+      </div>
+      <div class="scenario-card">
+        <span class="scenario-tag" style="background:#fdf2f8;color:#9d174d;">Data Lineage</span>
+        <h3>Follow the data across files</h3>
+        <p>Trace a revenue cell through external file links — from the operating model, through a data feed, back to the original CRM export.</p>
+      </div>
+      <div class="scenario-card">
+        <span class="scenario-tag" style="background:#ecfeff;color:#0e7490;">Handover</span>
+        <h3>Build a self-documenting model</h3>
+        <p>Label key cells conversationally. Labels persist as a sidecar JSON file so any analyst can run <code>get_all_labels</code> and immediately understand the model's structure.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Install ── -->
+<section class="section" id="install">
+  <div class="container">
+    <div class="section-label">Installation</div>
+    <h2 class="section-title">Up and running in 5 minutes</h2>
+    <p class="section-sub">No cloud account needed. Everything runs locally on your machine.</p>
+
+    <div class="install-steps">
+      <div class="install-step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Download the binary</h4>
+          <p>Go to the <a href="https://github.com/me883/forecastai-dist/releases/latest">latest release</a> and download the binary for your platform.</p>
+          <div style="margin-top:0.5rem">
+            <a href="https://github.com/me883/forecastai-dist/releases/latest" class="btn btn-primary" style="margin-right:0.5rem">⬇ macOS (Apple Silicon)</a>
+            <a href="https://github.com/me883/forecastai-dist/releases/latest" class="btn btn-ghost">⬇ macOS (Intel) &nbsp;·&nbsp; Windows</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Move and make executable (macOS)</h4>
+          <div class="code-block"><span class="comment"># Move to a permanent location</span>
+mv ~/Downloads/forecast-mcp-mac-arm64 ~/Documents/ForecastAI/forecast-mcp
+chmod +x ~/Documents/ForecastAI/forecast-mcp
+
+<span class="comment"># Create your Excel workspace folder</span>
+mkdir -p ~/Documents/ForecastAI/models</div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Add to Claude Desktop config</h4>
+          <p>Open <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> and add:</p>
+          <div class="code-block">{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"forecast-ai-excel"</span>: {
+      <span class="key">"command"</span>: <span class="string">"/Users/YOUR_NAME/Documents/ForecastAI/forecast-mcp"</span>,
+      <span class="key">"env"</span>: {
+        <span class="key">"EXCEL_WORKSPACE_DIR"</span>: <span class="string">"/Users/YOUR_NAME/Documents/ForecastAI/models"</span>,
+        <span class="key">"MCP_TRANSPORT"</span>: <span class="string">"stdio"</span>
+      }
+    }
+  }
+}</div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Add your Excel files and restart Claude</h4>
+          <p>Drop any <code>.xlsx</code> or <code>.xls</code> files into your models folder, then restart Claude Desktop. You'll see <strong>forecast-ai-excel</strong> in the MCP tools panel.</p>
+          <p style="margin-top:0.5rem">Try: <em>"List my Excel files"</em> to confirm it's working.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.5rem; padding:1.25rem 1.5rem; background:var(--blue-50); border:1.5px solid var(--blue-100); border-radius:var(--radius);">
+      <strong style="color:var(--blue-700);">Developer install (Python)</strong><br/>
+      <span style="font-size:0.875rem; color:var(--slate-500);">If you prefer to run from source:</span>
+      <div class="code-block" style="margin-top:0.75rem">git clone https://github.com/me883/forecastAI
+cd forecastAI
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+forecast-mcp  <span class="comment"># verify it starts</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-brand">📊 ForecastAI</div>
+  <p>Excel intelligence for Claude Desktop</p>
+  <p style="margin-top:0.25rem;font-size:0.8rem;">Built by <a href="https://github.com/me883">me883</a> · April 2026</p>
+  <div class="footer-links">
+    <a href="https://github.com/me883/forecastAI">Source (private)</a>
+    <a href="https://github.com/me883/forecastai-dist/releases">Releases</a>
+    <a href="tutorial.html">CFO Tutorial</a>
+    <a href="https://github.com/me883/forecastai-dist/releases/latest">Download</a>
+  </div>
+</footer>
+
+</body>
+</html>
